@@ -143,6 +143,39 @@
                 <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[General_LayoutLockPositionHint]}"
                            Foreground="{DynamicResource TextSecondary}" FontSize="12" TextWrapping="Wrap" Margin="24,4,0,0"/>
 
+                <Grid x:Name="RowLayoutPopupPosition" Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="GeneralLabel"/>
+                        <ColumnDefinition Width="Auto" MinWidth="170"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[General_LayoutPopupPosition]}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1"
+                              Style="{StaticResource SettingsComboBox}"
+                              ItemsSource="{Binding General.Layout.PopupPositionOptions}"
+                              DisplayMemberPath="Label" SelectedValuePath="Value"
+                              SelectedValue="{Binding General.Layout.PopupPositionMode, Mode=TwoWay}"/>
+                </Grid>
+                <StackPanel Visibility="{Binding General.Layout.IsCustomPopupPosition, Converter={StaticResource BoolToVis}}">
+                    <Grid x:Name="RowLayoutPopupCustomHorizontal" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="GeneralLabel"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[General_LayoutPopupCustomHorizontal]}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding General.Layout.CustomHorizontalPercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True, ValidatesOnExceptions=True}"/>
+                    </Grid>
+                    <Grid x:Name="RowLayoutPopupCustomVertical" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="GeneralLabel"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[General_LayoutPopupCustomVertical]}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding General.Layout.CustomVerticalPercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True, ValidatesOnExceptions=True}"/>
+                    </Grid>
+                    <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[General_LayoutPopupCustomHint]}"
+                               Foreground="{DynamicResource TextSecondary}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                </StackPanel>
+
                 <CheckBox x:Name="RowLayoutAutoFillClipboard"
                            Content="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[General_LayoutAutoFillClipboard]}"
                            IsChecked="{Binding General.EnableQuickSearchClipboardAutoFill, Mode=TwoWay}"

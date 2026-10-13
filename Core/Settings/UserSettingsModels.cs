@@ -198,6 +198,26 @@ public class SearchWindowSettings
     // window happened to be dragged on originally.
     public double? RelativeLeft { get; set; }
     public double? RelativeTop { get; set; }
+    // Where the quick window appears on summon: "Remember" (last dragged-to spot, re-derived per
+    // monitor -- the behavior above), "Center" (horizontally centered, 22% down, ignoring the memory),
+    // "FollowMouse" (window centered on the cursor), or "Custom" (CustomRelativeLeft/Top fractions).
+    // Kept a string with a normalizer, same convention as LogLevel.
+    public string PopupPositionMode { get; set; } = "Remember";
+    // The "Custom" mode's fractions of the target monitor's work area, same clamping range as the
+    // drag-remembered RelativeLeft/RelativeTop. Stored as fractions, shown as percentages in Settings.
+    public double CustomRelativeLeft { get; set; } = 0.5;
+    public double CustomRelativeTop { get; set; } = 0.22;
+
+    /// <summary>PopupPositionMode with unknown/null values folded to "Remember" -- what the
+    /// positioner and the Layout settings actually switch on.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string NormalizedPopupPositionMode => PopupPositionMode switch
+    {
+        "Center" => "Center",
+        "FollowMouse" => "FollowMouse",
+        "Custom" => "Custom",
+        _ => "Remember"
+    };
     // Replaces the quick window's empty-state placeholder text with date/time/day-of-week (see #101).
     // The 农历 half of that line has no setting here on purpose: it is the Calendar plugin's own data and its
     // own switch, so a plugin the user disabled is simply never asked for it (see ICalendarTextProvider).

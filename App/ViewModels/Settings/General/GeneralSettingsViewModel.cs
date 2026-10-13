@@ -284,6 +284,7 @@ public class GeneralSettingsViewModel : ViewModelBase
 
     public void Cleanup()
     {
+        Layout.Cleanup();
         QuickNavigationOrder.Cleanup();
         ResultTypeOrder.Cleanup();
         SidebarGroupOrder.Cleanup();

@@ -38,6 +38,7 @@ public class QuickSearchWindowPositioner
         var hwnd = new WindowInteropHelper(_window).Handle;
         Screen screen;
         IntPtr targetMonitor;
+        var mousePos = Control.MousePosition;
 
         // When the window is already visible (e.g. pinned / handling DpiChanged), preserve placement on its current monitor.
         // When summoning (not yet visible), target the monitor under the mouse cursor.
@@ -48,7 +49,6 @@ public class QuickSearchWindowPositioner
         }
         else
         {
-            var mousePos = Control.MousePosition;
             screen = Screen.FromPoint(mousePos);
             targetMonitor = MonitorFromPoint(new POINT { X = mousePos.X, Y = mousePos.Y }, MONITOR_DEFAULTTONEAREST);
         }
@@ -56,12 +56,25 @@ public class QuickSearchWindowPositioner
         var (targetDpiScaleX, targetDpiScaleY) = GetMonitorDpiScale(targetMonitor);
         var wa = screen.WorkingArea;
         var settings = UserSettings.Load();
-        var windowWidth = settings.SearchWindow.SearchBarWidth + 48;
+        var sw = settings.SearchWindow;
+        var windowWidth = sw.SearchBarWidth + 48;
+        // FollowMouse centers the window on the cursor and needs a height; the search-bar height is
+        // the stand-in until the first layout pass (ActualHeight is 0 while hidden).
+        var windowHeight = _window.ActualHeight > 0 ? _window.ActualHeight : sw.SearchBarHeight;
 
-        var (targetPhysX, targetPhysY) = CalculatePhysicalPosition(
+        // FollowMouse targets the cursor on summon only; an already-visible window (pinned, DPI
+        // change) keeps its placement rather than jumping to wherever the cursor happens to be.
+        if (sw.NormalizedPopupPositionMode == "FollowMouse" && _window.IsVisible && hwnd != IntPtr.Zero)
+            return;
+
+        var (targetPhysX, targetPhysY) = CalculateSummonPosition(
             wa.Left, wa.Top, wa.Width, wa.Height,
-            windowWidth, targetDpiScaleX,
-            settings.SearchWindow.RelativeLeft, settings.SearchWindow.RelativeTop);
+            windowWidth, windowHeight,
+            targetDpiScaleX, targetDpiScaleY,
+            mousePos.X, mousePos.Y,
+            sw.NormalizedPopupPositionMode,
+            sw.RelativeLeft, sw.RelativeTop,
+            sw.CustomRelativeLeft, sw.CustomRelativeTop);
 
         // Set WPF DIP properties first so WPF's internal logical coordinates are updated.
         // If WPF's internal DPI scale is temporarily stale (e.g. while hidden across different DPI monitors),
@@ -75,6 +88,36 @@ public class QuickSearchWindowPositioner
             SetWindowPos(hwnd, IntPtr.Zero,
                 (int)Math.Round(targetPhysX), (int)Math.Round(targetPhysY), 0, 0,
                 SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+        }
+    }
+
+    // Where the window lands on summon, per SearchWindowSettings.PopupPositionMode. "Center" and
+    // "Custom" ride CalculatePhysicalPosition (null memory = the default centered formula); the
+    // drag-remembered RelativeLeft/Top stay what "Remember" reads.
+    internal static (double PhysX, double PhysY) CalculateSummonPosition(
+        int waLeft, int waTop, int waWidth, int waHeight,
+        double windowDipWidth, double windowDipHeight,
+        double targetDpiScaleX, double targetDpiScaleY,
+        int mousePhysX, int mousePhysY,
+        string? mode, double? relativeLeft, double? relativeTop,
+        double customLeft, double customTop)
+    {
+        switch (mode)
+        {
+            case "FollowMouse":
+            {
+                var physW = windowDipWidth * targetDpiScaleX;
+                var physH = windowDipHeight * targetDpiScaleY;
+                // Centered on the cursor, clamped back inside the work area.
+                return (Math.Clamp(mousePhysX - physW / 2.0, waLeft, waLeft + Math.Max(0, waWidth - physW)),
+                        Math.Clamp(mousePhysY - physH / 2.0, waTop, waTop + Math.Max(0, waHeight - physH)));
+            }
+            case "Center":
+                return CalculatePhysicalPosition(waLeft, waTop, waWidth, waHeight, windowDipWidth, targetDpiScaleX, null, null);
+            case "Custom":
+                return CalculatePhysicalPosition(waLeft, waTop, waWidth, waHeight, windowDipWidth, targetDpiScaleX, customLeft, customTop);
+            default: // Remember (or anything unrecognized)
+                return CalculatePhysicalPosition(waLeft, waTop, waWidth, waHeight, windowDipWidth, targetDpiScaleX, relativeLeft, relativeTop);
         }
     }
 

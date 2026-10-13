@@ -53,4 +53,20 @@ public static class SettingsOptionGenerator
         "Debug" => "Debug",
         _ => "Info"
     };
+
+    public static IReadOnlyList<LabeledOption> GetPopupPositionOptions() =>
+    [
+        new LabeledOption("Remember", TranslationManager.Instance["General_PopupPositionRemember"]),
+        new LabeledOption("Center", TranslationManager.Instance["General_PopupPositionCenter"]),
+        new LabeledOption("FollowMouse", TranslationManager.Instance["General_PopupPositionFollowMouse"]),
+        new LabeledOption("Custom", TranslationManager.Instance["General_PopupPositionCustom"])
+    ];
+
+    public static string NormalizePopupPositionMode(string? value) => value switch
+    {
+        "Center" => "Center",
+        "FollowMouse" => "FollowMouse",
+        "Custom" => "Custom",
+        _ => "Remember"
+    };
 }

@@ -65,4 +65,77 @@ public sealed class QuickSearchWindowPositionerTests
         Assert.AreEqual(4224.0, physX, 0.001);
         Assert.AreEqual(108.0, physY, 0.001);
     }
+
+    [TestMethod]
+    public void CalculateSummonPosition_FollowMouse_CentersOnCursorAndClampsInsideWorkArea()
+    {
+        // Cursor mid-screen: window (600 DIP wide, 100 DIP tall at 100%) centers on it.
+        var (physX, physY) = QuickSearchWindowPositioner.CalculateSummonPosition(
+            waLeft: 0, waTop: 0, waWidth: 1920, waHeight: 1080,
+            windowDipWidth: 600, windowDipHeight: 100,
+            targetDpiScaleX: 1.0, targetDpiScaleY: 1.0,
+            mousePhysX: 960, mousePhysY: 540,
+            mode: "FollowMouse", relativeLeft: null, relativeTop: null,
+            customLeft: 0.5, customTop: 0.22);
+
+        Assert.AreEqual(660.0, physX, 0.001); // 960 - 600/2
+        Assert.AreEqual(490.0, physY, 0.001); // 540 - 100/2
+
+        // Cursor in the work area's top-left corner: the window clamps fully inside.
+        var (cornerX, cornerY) = QuickSearchWindowPositioner.CalculateSummonPosition(
+            waLeft: 0, waTop: 0, waWidth: 1920, waHeight: 1080,
+            windowDipWidth: 600, windowDipHeight: 100,
+            targetDpiScaleX: 1.0, targetDpiScaleY: 1.0,
+            mousePhysX: 10, mousePhysY: 10,
+            mode: "FollowMouse", relativeLeft: null, relativeTop: null,
+            customLeft: 0.5, customTop: 0.22);
+
+        Assert.AreEqual(0.0, cornerX, 0.001);
+        Assert.AreEqual(0.0, cornerY, 0.001);
+    }
+
+    [TestMethod]
+    public void CalculateSummonPosition_CenterAndCustom_OverrideTheDragMemory()
+    {
+        // The remembered spot (0.2/0.1) must NOT win under Center or Custom.
+        var (centerX, centerY) = QuickSearchWindowPositioner.CalculateSummonPosition(
+            waLeft: 0, waTop: 0, waWidth: 1920, waHeight: 1080,
+            windowDipWidth: 600, windowDipHeight: 100,
+            targetDpiScaleX: 1.0, targetDpiScaleY: 1.0,
+            mousePhysX: 0, mousePhysY: 0,
+            mode: "Center", relativeLeft: 0.2, relativeTop: 0.1,
+            customLeft: 0.0, customTop: 0.0);
+
+        Assert.AreEqual(660.0, centerX, 0.001); // (1920 - 600) / 2
+        Assert.AreEqual(237.6, centerY, 0.001); // 1080 * 0.22
+
+        var (customX, customY) = QuickSearchWindowPositioner.CalculateSummonPosition(
+            waLeft: 0, waTop: 0, waWidth: 1920, waHeight: 1080,
+            windowDipWidth: 600, windowDipHeight: 100,
+            targetDpiScaleX: 1.0, targetDpiScaleY: 1.0,
+            mousePhysX: 0, mousePhysY: 0,
+            mode: "Custom", relativeLeft: 0.2, relativeTop: 0.1,
+            customLeft: 0.25, customTop: 0.5);
+
+        Assert.AreEqual(480.0, customX, 0.001); // 0.25 * 1920
+        Assert.AreEqual(540.0, customY, 0.001); // 0.5 * 1080
+    }
+
+    [TestMethod]
+    public void CalculateSummonPosition_RememberOrUnknown_FallsBackToDragMemory()
+    {
+        foreach (var mode in new[] { "Remember", null, "Nonsense" })
+        {
+            var (physX, physY) = QuickSearchWindowPositioner.CalculateSummonPosition(
+                waLeft: 0, waTop: 0, waWidth: 1920, waHeight: 1080,
+                windowDipWidth: 600, windowDipHeight: 100,
+                targetDpiScaleX: 1.0, targetDpiScaleY: 1.0,
+                mousePhysX: 960, mousePhysY: 540,
+                mode: mode, relativeLeft: 0.2, relativeTop: 0.1,
+                customLeft: 0.5, customTop: 0.22);
+
+            Assert.AreEqual(384.0, physX, 0.001, mode ?? "null"); // 0.2 * 1920
+            Assert.AreEqual(108.0, physY, 0.001, mode ?? "null"); // 0.1 * 1080
+        }
+    }
 }
