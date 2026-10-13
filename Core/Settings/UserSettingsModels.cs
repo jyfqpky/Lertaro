@@ -163,6 +163,30 @@ public class FavoriteItemSetting
     public string Hotkey { get; set; } = string.Empty;
 }
 
+/// <summary>Per-window font and base text size -- see AppTypography, which maps each window type
+/// to its profile and applies the values as local FontFamily/FontSize overrides on the window root.
+/// Applied live by the Appearance settings page (no Apply/staging round-trip), same as themes.</summary>
+public class TypographySettings
+{
+    public FontProfileSettings QuickSearch { get; set; } = new();
+    public FontProfileSettings SearchWindow { get; set; } = new();
+    public FontProfileSettings InlineSearch { get; set; } = new();
+    public FontProfileSettings Settings { get; set; } = new();
+    /// <summary>Every window without its own profile above (Quick Panel, Quick Look, Local Send,
+    /// notifications, plugin windows).</summary>
+    public FontProfileSettings Default { get; set; } = new();
+}
+
+public class FontProfileSettings
+{
+    /// <summary>Font family source string ("Microsoft YaHei"). Empty = the built-in
+    /// "Segoe UI, Global User Interface" composite with its per-language CJK fallback.</summary>
+    public string Family { get; set; } = string.Empty;
+    /// <summary>Base text size in WPF DIPs, set on the window root so every element that doesn't
+    /// hard-code its own FontSize inherits it. 0 = WPF's inherited system default.</summary>
+    public double Size { get; set; }
+}
+
 public class SearchWindowSettings
 {
     public double SearchBarWidth { get; set; } = 570;

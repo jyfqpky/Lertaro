@@ -14,6 +14,9 @@ public class ThemeSettingsViewModel : ViewModelBase
     private readonly System.ComponentModel.PropertyChangedEventHandler _translationHandler;
 
     private readonly UserSettings _userSettings;
+    // Sits here (not on SettingsViewModel) so its Fonts.SystemFontFamilies enumeration stays behind
+    // the Appearance page's own deferred construction -- the same issue #186 reasoning as above.
+    public TypographySettingsViewModel Typography { get; }
     private ThemeOption? _selectedTheme;
     private ThemeOption? _selectedLightTheme;
     private ThemeOption? _selectedDarkTheme;
@@ -27,6 +30,7 @@ public class ThemeSettingsViewModel : ViewModelBase
     public ThemeSettingsViewModel(UserSettings userSettings)
     {
         _userSettings = userSettings;
+        Typography = new TypographySettingsViewModel(userSettings);
 
         _selectedTheme = ThemeOptions.FirstOrDefault(o => o.Value == _userSettings.Theme)
                          ?? ThemeOptions.FirstOrDefault();
@@ -280,5 +284,9 @@ public class ThemeSettingsViewModel : ViewModelBase
         }
     }
 
-    public void Cleanup() => TranslationManager.Instance.PropertyChanged -= _translationHandler;
+    public void Cleanup()
+    {
+        TranslationManager.Instance.PropertyChanged -= _translationHandler;
+        Typography.Cleanup();
+    }
 }

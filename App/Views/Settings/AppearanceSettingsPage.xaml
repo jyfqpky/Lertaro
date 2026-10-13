@@ -224,6 +224,106 @@
                              SelectedValue="{Binding Appearance.SelectedDarkThemeId, Mode=TwoWay}"/>
                 </Border>
             </StackPanel>
+
+            <!-- Per-window fonts: family + base size, applied live to open windows. -->
+            <TextBlock Style="{StaticResource SettingsGroupTitle}"
+                        Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontGroupTitle]}"/>
+            <TextBlock Style="{StaticResource SettingsHintText}"
+                        Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontHint]}"/>
+            <Border Style="{StaticResource SettingsCard}" Margin="0,8,0,0">
+                <StackPanel>
+                    <Grid x:Name="RowFontQuickSearch" Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontQuickSearch]}"
+                                   Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="220"
+                                      ItemsSource="{Binding Appearance.Typography.FontOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.QuickSearch.SelectedFamilyKey, Mode=TwoWay}"/>
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="80" Margin="12,0,0,0"
+                                      ItemsSource="{Binding Appearance.Typography.SizeOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.QuickSearch.SelectedSize, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid x:Name="RowFontSearchWindow" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontSearchWindow]}"
+                                   Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="220"
+                                      ItemsSource="{Binding Appearance.Typography.FontOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.SearchWindow.SelectedFamilyKey, Mode=TwoWay}"/>
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="80" Margin="12,0,0,0"
+                                      ItemsSource="{Binding Appearance.Typography.SizeOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.SearchWindow.SelectedSize, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid x:Name="RowFontInlineSearch" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontInlineSearch]}"
+                                   Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="220"
+                                      ItemsSource="{Binding Appearance.Typography.FontOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.InlineSearch.SelectedFamilyKey, Mode=TwoWay}"/>
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="80" Margin="12,0,0,0"
+                                      ItemsSource="{Binding Appearance.Typography.SizeOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.InlineSearch.SelectedSize, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid x:Name="RowFontSettings" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontSettingsWindow]}"
+                                   Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="220"
+                                      ItemsSource="{Binding Appearance.Typography.FontOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.Settings.SelectedFamilyKey, Mode=TwoWay}"/>
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="80" Margin="12,0,0,0"
+                                      ItemsSource="{Binding Appearance.Typography.SizeOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.Settings.SelectedSize, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid x:Name="RowFontDefault" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Source={x:Static services:TranslationManager.Instance}, Path=[Appearance_FontOther]}"
+                                   Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="220"
+                                      ItemsSource="{Binding Appearance.Typography.FontOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.Default.SelectedFamilyKey, Mode=TwoWay}"/>
+                            <ComboBox Style="{StaticResource SettingsComboBox}" Width="80" Margin="12,0,0,0"
+                                      ItemsSource="{Binding Appearance.Typography.SizeOptions}"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding Appearance.Typography.Default.SelectedSize, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

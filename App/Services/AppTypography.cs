@@ -3,6 +3,11 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Markup;
+using Lertaro.App.Views.InlineSearchWindow;
+using Lertaro.App.Views.QuickSearchWindow;
+using Lertaro.App.Views.SearchWindow;
+using Lertaro.App.Views.Settings;
+using Lertaro.Core;
 using FontFamily = System.Windows.Media.FontFamily;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using ToolTip = System.Windows.Controls.ToolTip;
@@ -25,8 +30,20 @@ internal static class AppTypography
     internal static FontFamily IconFont { get; } = new("Segoe Fluent Icons, Segoe MDL2 Assets");
     private static bool _registered;
 
-    internal static void Initialize(ResourceDictionary resources, string? culture)
+    // Per-window user font profiles (Appearance settings page). Null until Initialize runs.
+    private static TypographySettings? _typography;
+
+    // Marks roots where a profile wrote LOCAL FontFamily/FontSize values. Switching a profile back
+    // to default needs to know those local values are ours to remove -- OnRootLoaded's
+    // plugin-protective "leave local values alone" rule can't tell ours from a plugin's.
+    private static readonly DependencyProperty FamilyWrittenProperty = DependencyProperty.RegisterAttached(
+        "FamilyWritten", typeof(bool), typeof(AppTypography), new PropertyMetadata(false));
+    private static readonly DependencyProperty SizeWrittenProperty = DependencyProperty.RegisterAttached(
+        "SizeWritten", typeof(bool), typeof(AppTypography), new PropertyMetadata(false));
+
+    internal static void Initialize(ResourceDictionary resources, string? culture, TypographySettings? typography = null)
     {
+        _typography = typography;
         resources[UiFontKey] = UiFont;
         resources[MonospaceFontKey] = MonospaceFont;
         resources[IconFontKey] = IconFont;
@@ -39,6 +56,17 @@ internal static class AppTypography
         foreach (var type in new[] { typeof(Window), typeof(Popup), typeof(ContextMenu), typeof(ToolTip) })
             EventManager.RegisterClassHandler(type, FrameworkElement.LoadedEvent,
                 new RoutedEventHandler(OnRootLoaded));
+    }
+
+    // Re-applies every profile to all open windows. Menus/tooltips popups pick the new values up on
+    // their next open, so refreshing the windows themselves is enough. Called by the Appearance
+    // page after each per-window font change.
+    internal static void UpdateTypography(TypographySettings typography)
+    {
+        _typography = typography;
+        if (System.Windows.Application.Current is null) return;
+        foreach (Window window in System.Windows.Application.Current.Windows)
+            ApplyProfile(window);
     }
 
     internal static void UpdateLanguage(ResourceDictionary resources, string? culture)
@@ -78,5 +106,63 @@ internal static class AppTypography
         if (weightSource is BaseValueSource.Default or BaseValueSource.Inherited
             or BaseValueSource.DefaultStyle or BaseValueSource.DefaultStyleTrigger)
             root.SetResourceReference(TextElement.FontWeightProperty, UiFontWeightKey);
+        ApplyProfile(root);
+    }
+
+    // Menus, tooltips and plugin popups are separate visual roots that never inherit from the
+    // window they belong to, so they resolve their host window themselves to get its profile.
+    // ponytail: a ContextMenu/ToolTip whose PlacementTarget is still null when it loads falls
+    // back to the Default profile; switching those to per-window tracking means hooking Opened
+    // per instance, which this never needed.
+    private static Window? HostOf(FrameworkElement root) => root switch
+    {
+        Window window => window,
+        Popup { PlacementTarget: { } target } => Window.GetWindow(target),
+        ContextMenu { PlacementTarget: { } menuTarget } => Window.GetWindow(menuTarget),
+        ToolTip { PlacementTarget: { } tipTarget } => Window.GetWindow(tipTarget),
+        _ => null
+    };
+
+    private static FontProfileSettings? ProfileFor(FrameworkElement root)
+    {
+        if (_typography is null || HostOf(root) is not { } host) return null;
+        return host switch
+        {
+            QuickSearchWindow => _typography.QuickSearch,
+            SearchWindow => _typography.SearchWindow,
+            InlineSearchWindow => _typography.InlineSearch,
+            SettingsWindow => _typography.Settings,
+            _ => _typography.Default
+        };
+    }
+
+    private static void ApplyProfile(FrameworkElement root)
+    {
+        var profile = ProfileFor(root);
+        if (profile is { Family.Length: > 0 })
+        {
+            root.SetValue(TextElement.FontFamilyProperty, new FontFamily(profile.Family));
+            root.SetValue(FamilyWrittenProperty, true);
+        }
+        else if ((bool)root.GetValue(FamilyWrittenProperty))
+        {
+            // Restore the shared per-language fallback reference the profile value replaced.
+            root.SetResourceReference(TextElement.FontFamilyProperty, UiFontKey);
+            root.SetValue(FamilyWrittenProperty, false);
+        }
+        if (profile is { Size: > 0 })
+        {
+            root.SetValue(TextElement.FontSizeProperty, profile.Size);
+            root.SetValue(SizeWrittenProperty, true);
+        }
+        else if ((bool)root.GetValue(SizeWrittenProperty))
+        {
+            // UnsetValue clears the local value (InvalidateProperty would keep it); back to WPF's
+            // inherited system-default size.
+            // ponytail: also clears a local FontSize a plugin root set itself; per-window sizes and
+            // plugin-set root sizes never legitimately coexist, so the collision is acceptable.
+            root.SetValue(TextElement.FontSizeProperty, DependencyProperty.UnsetValue);
+            root.SetValue(SizeWrittenProperty, false);
+        }
     }
 }

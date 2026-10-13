@@ -114,7 +114,7 @@ public partial class App : Application
             Shutdown(1);
             return;
         }
-        AppTypography.Initialize(Resources, TranslationManager.Instance.CurrentCulture);
+        AppTypography.Initialize(Resources, TranslationManager.Instance.CurrentCulture, settings.Typography);
         Logger.MinimumLevel = SettingsOptionGenerator.ParseLogLevel(settings.LogLevel);
         // Everything this process matches outside the search pipeline -- plugin catalog items,
         // favorites, shell-menu filtering, display highlighting -- reads this rather than the

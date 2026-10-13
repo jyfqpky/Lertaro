@@ -53,6 +53,43 @@ public sealed class AppTypographyTests
     }
 
     [StaTestMethod]
+    public void ProfileFontsApplyToWindowAndPopupRootsAndRevertToDefault()
+    {
+        var typography = new TypographySettings
+        {
+            Default = new FontProfileSettings { Family = "Tahoma", Size = 15 }
+        };
+        var root = new Window();
+        var text = new TextBlock { Text = "Profile" };
+        root.Content = text;
+        var popup = new Popup { PlacementTarget = root };
+        var popupText = new TextBlock { Text = "Popup" };
+        popup.Child = popupText;
+        try
+        {
+            AppTypography.Initialize(root.Resources, "zh-CN", typography);
+            root.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+            popup.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+            Assert.AreEqual("Tahoma", text.FontFamily.Source);
+            Assert.AreEqual(15, text.FontSize, 0.001);
+            Assert.AreEqual("Tahoma", popupText.FontFamily.Source, "popup roots resolve their host window's profile");
+            Assert.AreEqual(15, popupText.FontSize, 0.001);
+
+            // Switching the profile back to default re-inherits the shared composite font, not a stale Tahoma.
+            typography.Default = new FontProfileSettings();
+            root.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+            Assert.AreEqual(AppTypography.UiFont, text.FontFamily);
+            Assert.AreEqual(SystemFonts.MessageFontSize, text.FontSize, 0.001);
+        }
+        finally
+        {
+            // Reset the static profile so later tests (which pass none) run against defaults.
+            AppTypography.Initialize(root.Resources, "zh-CN");
+            root.Close();
+        }
+    }
+
+    [StaTestMethod]
     public void WindowsPluginsAndPopupRootsInheritFontsAndLiveLanguageChanges()
     {
         foreach (var root in new FrameworkElement[] { new Window(), new PluginWindow("Fonts"), new Popup(), new ContextMenu(), new ToolTip() })

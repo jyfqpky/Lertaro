@@ -78,6 +78,7 @@ public class UserSettings
     // including the host's Light/Dark resources when the theme plugins are disabled.
     public string LightThemeId { get; set; } = string.Empty;
     public string DarkThemeId { get; set; } = string.Empty;
+    public TypographySettings Typography { get; set; } = new();
     public HotkeyPageSettings Hotkeys { get; set; } = new();
     public SearchWindowSettings SearchWindow { get; set; } = new();
     public bool EnableQuickSearchClipboardAutoFill { get; set; } = false;

@@ -127,6 +127,12 @@ public static class SettingsSearchIndex
             IsVisible: vm => vm.Appearance.FollowSystem),
         new("General_ThemeDarkSelect", "Appearance", TargetElementName: "RowThemeDarkCards",
             IsVisible: vm => vm.Appearance.FollowSystem),
+        new("Appearance_FontGroupTitle", "Appearance", TargetElementName: "RowFontQuickSearch"),
+        new("Appearance_FontQuickSearch", "Appearance", TargetElementName: "RowFontQuickSearch", TabLabelKey: "Appearance_FontGroupTitle"),
+        new("Appearance_FontSearchWindow", "Appearance", TargetElementName: "RowFontSearchWindow", TabLabelKey: "Appearance_FontGroupTitle"),
+        new("Appearance_FontInlineSearch", "Appearance", TargetElementName: "RowFontInlineSearch", TabLabelKey: "Appearance_FontGroupTitle"),
+        new("Appearance_FontSettingsWindow", "Appearance", TargetElementName: "RowFontSettings", TabLabelKey: "Appearance_FontGroupTitle"),
+        new("Appearance_FontOther", "Appearance", TargetElementName: "RowFontDefault", TabLabelKey: "Appearance_FontGroupTitle"),
 
         // Hotkeys
         new("Settings_Hotkeys", "Hotkeys"),
