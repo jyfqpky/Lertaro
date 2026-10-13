@@ -25,10 +25,11 @@
 
 
     <Grid x:Name="RootGrid">
-        <!-- Deliberately no drag handlers on this card (#255): the window is moved ONLY by dragging the
-             Lertaro logo in the search box, so a press anywhere on the card - its edge and its empty
-             results area included - must do nothing at all. See QuickSearchWindow.xaml.cs for the logo's
-             own gate. -->
+        <!-- The card drags the window: unhandled MouseLeftButtonDown presses on its chrome (the search
+             bar's padding, the empty space around the results, the margin around the card) reach the
+             window's OnCardMouseLeftButtonDown and DragMove. Interactive elements handle their own
+             presses first, and the Lertaro logo keeps its own separate drag path. "Lock position"
+             (SearchWindowSettings) gates both. -->
         <Border Margin="24,40,24,24" CornerRadius="8" Background="{DynamicResource CardBackground}"
                 BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
 

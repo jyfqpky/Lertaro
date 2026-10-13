@@ -116,11 +116,10 @@ public partial class QuickSearchWindow : Window, ISearchWindow, IHasVisibleConte
         // Wire up event handlers to subcontrols
         SearchBox.IconRightClicked += _controller.ResetPosition;
         SearchBox.IconMiddleClicked += _controller.ToggleStayOpen;
-        // The logo is the ONLY way to move this window (#255): the card's own drag was removed rather than
-        // fixed, so nothing else on this window responds to a drag. IsIconDraggable keeps the logo's
-        // "drag moves the window" behavior working alongside IconLeftClicked: SearchBoxControl tells a real
-        // drag apart from a plain click by movement distance (see its own Icon_MouseMove), so this needs
-        // BOTH flags rather than picking one.
+        // The logo still drags the window (alongside the card-chrome drag, see OnCardMouseLeftButtonDown):
+        // IsIconDraggable keeps the logo's "drag moves the window" behavior working alongside
+        // IconLeftClicked: SearchBoxControl tells a real drag apart from a plain click by movement
+        // distance (see its own Icon_MouseMove), so this needs BOTH flags rather than picking one.
         SearchBox.IconLeftClicked += (_, _) => ShowTrayMenu();
         SearchBox.IconDragCompleted += SaveWindowPosition;
         SearchBox.IsIconClickable = true;
@@ -134,6 +133,10 @@ public partial class QuickSearchWindow : Window, ISearchWindow, IHasVisibleConte
         // have left it stale for as long as the window stayed open.
         PreviewMouseLeftButtonDown += (_, _) =>
             SearchBox.IsIconDraggable = ShouldAllowIconDrag(UserSettings.Load().SearchWindow.LockPosition);
+        // The card's own drag (see OnCardMouseLeftButtonDown): bubbling MouseLeftButtonDown, so only
+        // presses the inner controls never handled reach it - the same routing the logo's gate above
+        // deliberately does not use, since it must run before SearchBoxControl's own handlers.
+        MouseLeftButtonDown += OnCardMouseLeftButtonDown;
         SearchBox.IconClickHint = TranslationManager.Instance["QuickSearch_LogoDragResetHint"];
         PreviewMouseDown += (_, e) => _inputHandler.HandleWindowPreviewMouseDown(e);
         LstResults.PreviewMouseLeftButtonUp += (s, e) => _resultExecutor.HandlePreviewMouseLeftButtonUp(e);
@@ -246,6 +249,19 @@ public partial class QuickSearchWindow : Window, ISearchWindow, IHasVisibleConte
     }
     internal static bool ShouldAllowIconDrag(bool lockPosition) => !lockPosition;
     private void SaveWindowPosition() => _controller.SaveWindowPosition();
+
+    // The card's own chrome drags the window again (reversing #255's logo-only rule): any press the
+    // inner controls don't handle themselves - the search bar's padding, the empty space around the
+    // results, the status bar's background, the invisible margin around the card - moves the window.
+    // DragMove() runs the OS's own move loop, which sidesteps the old custom drag support whose
+    // release-time reposition is what #255 removed; the logo's independent drag path is unchanged.
+    private void OnCardMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (!ShouldAllowIconDrag(UserSettings.Load().SearchWindow.LockPosition)) return;
+        DragMove();
+        // DragMove returns once the button is released: wherever the card was dropped is the new spot.
+        SaveWindowPosition();
+    }
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e) => _inputHandler.HandleWindowPreviewKeyDown(e);
     // The search box logo's own left-click (see SearchBox.IconLeftClicked wiring in the constructor)
     // opens the same menu the tray icon's right-click shows, anchored at the cursor rather than the tray

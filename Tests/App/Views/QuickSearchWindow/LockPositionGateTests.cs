@@ -6,10 +6,10 @@ using QuickWindow = Lertaro.App.QuickSearchWindow;
 
 namespace Lertaro.App.Tests.Views.QuickSearchWindow;
 
-// The gate behind the "Lock position" setting, for the logo drag -- which is now the window's only drag:
-// the card's own drag, and with it the second and differently-gated path this file used to cover, was
-// removed rather than fixed (#255). Only the decision is covered: the drag itself needs a live window,
-// which is why the decision was pulled out of the handler in the first place.
+// The gate behind the "Lock position" setting, covering both of the window's drag paths -- the
+// logo's (SearchBoxControl) and the card chrome's (OnCardMouseLeftButtonDown), which read the same
+// decision. Only the decision is covered: the drags themselves need a live window, which is why the
+// decision was pulled out of the handlers in the first place.
 [TestClass]
 public sealed class LockPositionGateTests
 {
